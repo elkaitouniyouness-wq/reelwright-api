@@ -7,9 +7,8 @@ from jose import jwt, JWTError
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
-# ---- Config (read from environment, never hard-code secrets) ----
-DATABASE_URL = os.environ["DATABASE_URL"]          # postgresql://... from DigitalOcean
-SECRET_KEY = os.environ["SECRET_KEY"]               # long random string, see .env.example
+DATABASE_URL = os.environ["DATABASE_URL"]
+SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 TOKEN_HOURS = 24
 
@@ -18,14 +17,13 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ---- Database model ----
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(String, default="user")           # "user" or "admin"
+    role = Column(String, default="user")
     plan = Column(String, default="Free")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     is_active = Column(Boolean, default=True)
@@ -39,7 +37,6 @@ def get_db():
     finally:
         db.close()
 
-# ---- Request/response shapes ----
 class SignupIn(BaseModel):
     name: str
     email: EmailStr
@@ -56,12 +53,11 @@ class UserOut(BaseModel):
     role: str
     plan: str
 
-# ---- App ----
 app = FastAPI(title="Reelwright API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # tighten this to your real domain once you have one
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -118,7 +114,6 @@ def login(body: LoginIn, db: Session = Depends(get_db)):
 def me(user: User = Depends(current_user)):
     return user
 
-# ---- Admin-only endpoints ----
 @app.get("/admin/users", response_model=list[UserOut])
 def list_users(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     return db.query(User).order_by(User.created_at.desc()).all()
@@ -140,3 +135,19 @@ def make_admin(user_id: int, admin: User = Depends(require_admin), db: Session =
     u.role = "admin"
     db.commit()
     return {"status": "promoted", "user_id": user_id}
+
+class BootstrapIn(BaseModel):
+    email: EmailStr
+    key: str
+
+@app.post("/admin/bootstrap", response_model=UserOut)
+def bootstrap_admin(body: BootstrapIn, db: Session = Depends(get_db)):
+    expected = os.environ.get("ADMIN_BOOTSTRAP_KEY")
+    if not expected or body.key != expected:
+        raise HTTPException(403, "Invalid bootstrap key")
+    user = db.query(User).filter(User.email == body.email).first()
+    if not user:
+        raise HTTPException(404, "No account with this email yet — sign up first")
+    user.role = "admin"
+    db.commit(); db.refresh(user)
+    return user
