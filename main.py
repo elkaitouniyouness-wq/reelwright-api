@@ -47,6 +47,8 @@ class LoginIn(BaseModel):
     password: str
 
 class UserOut(BaseModel):
+    class UserOut(BaseModel):
+    model_config = {"from_attributes": True}
     id: int
     name: str
     email: str
