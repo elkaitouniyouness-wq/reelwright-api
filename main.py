@@ -1,6 +1,7 @@
 import os, datetime
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr
 import bcrypt
 from jose import jwt, JWTError
@@ -8,8 +9,8 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 # ---- Config (read from environment, never hard-code secrets) ----
-DATABASE_URL = os.environ["DATABASE_URL"]          # postgresql://... from DigitalOcean
-SECRET_KEY = os.environ["SECRET_KEY"]               # long random string, see .env.example
+DATABASE_URL = os.environ["DATABASE_URL"]
+SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 TOKEN_HOURS = 24
 
@@ -24,7 +25,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(String, default="user")           # "user" or "admin"
+    role = Column(String, default="user")
     plan = Column(String, default="Free")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     is_active = Column(Boolean, default=True)
@@ -49,18 +50,23 @@ class LoginIn(BaseModel):
     password: str
 
 class UserOut(BaseModel):
+    model_config = {"from_attributes": True}
     id: int
     name: str
     email: str
     role: str
     plan: str
 
+class BootstrapIn(BaseModel):
+    email: EmailStr
+    key: str
+
 # ---- App ----
 app = FastAPI(title="Reelwright API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # tighten this to your real domain once you have one
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -95,11 +101,16 @@ def require_admin(user: User = Depends(current_user)) -> User:
 def health():
     return {"status": "ok"}
 
+@app.get("/app")
+def serve_app():
+    return FileResponse("app.html")
+
 @app.post("/auth/signup", response_model=UserOut)
 def signup(body: SignupIn, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == body.email).first():
         raise HTTPException(400, "An account with this email already exists")
-    user = User(name=body.name, email=body.email, password_hash=bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode())
+    hashed = bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode()
+    user = User(name=body.name, email=body.email, password_hash=hashed)
     db.add(user); db.commit(); db.refresh(user)
     return user
 
@@ -119,28 +130,4 @@ def me(user: User = Depends(current_user)):
 
 # ---- Admin-only endpoints ----
 @app.get("/admin/users", response_model=list[UserOut])
-def list_users(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    return db.query(User).order_by(User.created_at.desc()).all()
-
-@app.post("/admin/users/{user_id}/suspend")
-def suspend_user(user_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    u = db.get(User, user_id)
-    if not u:
-        raise HTTPException(404, "User not found")
-    u.is_active = False
-    db.commit()
-    return {"status": "suspended", "user_id": user_id}
-
-@app.post("/admin/users/{user_id}/make-admin")
-def make_admin(user_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    u = db.get(User, user_id)
-    if not u:
-        raise HTTPException(404, "User not found")
-    u.role = "admin"
-    db.commit()
-    return {"status": "promoted", "user_id": user_id}
-from fastapi.responses import FileResponse
-
-@app.get("/app")
-def serve_app():
-    return FileResponse("app.html")
+def list_users(admin: User =
