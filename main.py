@@ -2,7 +2,7 @@ import os, datetime
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
+import bcrypt
 from jose import jwt, JWTError
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -16,7 +16,6 @@ TOKEN_HOURS = 24
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
-pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ---- Database model ----
 class User(Base):
@@ -100,14 +99,14 @@ def health():
 def signup(body: SignupIn, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == body.email).first():
         raise HTTPException(400, "An account with this email already exists")
-    user = User(name=body.name, email=body.email, password_hash=pwd.hash(body.password))
+    user = User(name=body.name, email=body.email, password_hash=bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode())
     db.add(user); db.commit(); db.refresh(user)
     return user
 
 @app.post("/auth/login")
 def login(body: LoginIn, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == body.email).first()
-    if not user or not pwd.verify(body.password, user.password_hash):
+    if not user or not bcrypt.checkpw(body.password.encode(), user.password_hash.encode()):
         raise HTTPException(401, "Incorrect email or password")
     if not user.is_active:
         raise HTTPException(403, "This account has been suspended")
