@@ -140,3 +140,8 @@ def make_admin(user_id: int, admin: User = Depends(require_admin), db: Session =
     u.role = "admin"
     db.commit()
     return {"status": "promoted", "user_id": user_id}
+from fastapi.responses import FileResponse
+
+@app.get("/app")
+def serve_app():
+    return FileResponse("app.html")
