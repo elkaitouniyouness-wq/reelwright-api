@@ -130,4 +130,37 @@ def me(user: User = Depends(current_user)):
 
 # ---- Admin-only endpoints ----
 @app.get("/admin/users", response_model=list[UserOut])
-def list_users(admin: User =
+def list_users(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(User).order_by(User.created_at.desc()).all()
+
+@app.post("/admin/users/{user_id}/suspend")
+def suspend_user(user_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    u = db.get(User, user_id)
+    if not u:
+        raise HTTPException(404, "User not found")
+    u.is_active = False
+    db.commit()
+    return {"status": "suspended", "user_id": user_id}
+
+@app.post("/admin/users/{user_id}/make-admin")
+def make_admin(user_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    u = db.get(User, user_id)
+    if not u:
+        raise HTTPException(404, "User not found")
+    u.role = "admin"
+    db.commit()
+    return {"status": "promoted", "user_id": user_id}
+
+# ---- One-time bootstrap: promote the very first admin ----
+# Protected by ADMIN_BOOTSTRAP_KEY. Remove that env var from Render once used.
+@app.post("/admin/bootstrap", response_model=UserOut)
+def bootstrap_admin(body: BootstrapIn, db: Session = Depends(get_db)):
+    expected = os.environ.get("ADMIN_BOOTSTRAP_KEY")
+    if not expected or body.key != expected:
+        raise HTTPException(403, "Invalid bootstrap key")
+    user = db.query(User).filter(User.email == body.email).first()
+    if not user:
+        raise HTTPException(404, "No account with this email yet — sign up first")
+    user.role = "admin"
+    db.commit(); db.refresh(user)
+    return user
