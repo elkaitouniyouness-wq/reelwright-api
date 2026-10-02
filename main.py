@@ -1,4 +1,4 @@
-import os, datetime, json, uuid
+import os, datetime, json, uuid, subprocess, tempfile, textwrap
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
@@ -9,7 +9,10 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from anthropic import Anthropic
 import edge_tts
+from PIL import Image, ImageDraw, ImageFont
+import imageio_ffmpeg
 
+FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 VOICE_MAP = {
  ("English","Female"):"en-US-AriaNeural", ("English","Male"):"en-US-GuyNeural",
@@ -184,6 +187,68 @@ async def ai_voice(body: VoiceIn, user: User = Depends(current_user)):
     await communicate.save(out_path)
     return FileResponse(out_path, media_type="audio/mpeg", filename="voiceover.mp3")
 
+def _load_font(size, bold=False):
+    paths = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf" if bold else "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+    ]
+    for p in paths:
+        try:
+            return ImageFont.truetype(p, size)
+        except Exception:
+            continue
+    return ImageFont.load_default()
+
+def make_slide(path, title, narration, w=1280, h=720):
+    img = Image.new("RGB", (w, h), (23, 16, 25))
+    draw = ImageDraw.Draw(img)
+    font_title = _load_font(54, bold=True)
+    font_body = _load_font(32, bold=False)
+    draw.text((60, 60), title, font=font_title, fill=(242, 165, 60))
+    wrapped = textwrap.fill(narration, width=46)
+    draw.multiline_text((60, 170), wrapped, font=font_body, fill=(244, 236, 232), spacing=12)
+    img.save(path)
+
+class VideoScene(BaseModel):
+    title: str = ""
+    narration: str = ""
+    seconds: int = 0
+
+class VideoIn(BaseModel):
+    scenes: list[VideoScene]
+    language: str = "English"
+    gender: str = "Female"
+
+@app.post("/ai/video")
+async def ai_video(body: VideoIn, user: User = Depends(current_user)):
+    if not body.scenes:
+        raise HTTPException(400, "No scenes provided")
+    voice = VOICE_MAP.get((body.language, body.gender), "en-US-AriaNeural")
+    workdir = tempfile.mkdtemp()
+    clip_paths = []
+    for i, sc in enumerate(body.scenes):
+        img_path = f"{workdir}/slide_{i}.png"
+        audio_path = f"{workdir}/voice_{i}.mp3"
+        clip_path = f"{workdir}/clip_{i}.mp4"
+        make_slide(img_path, sc.title, sc.narration)
+        await edge_tts.Communicate(sc.narration, voice).save(audio_path)
+        proc = subprocess.run([FFMPEG, "-y", "-loop", "1", "-i", img_path, "-i", audio_path,
+            "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac", "-b:a", "192k",
+            "-pix_fmt", "yuv420p", "-shortest", clip_path], capture_output=True)
+        if proc.returncode != 0:
+            raise HTTPException(500, f"ffmpeg failed on scene {i}: {proc.stderr.decode(errors='ignore')[:400]}")
+        clip_paths.append(clip_path)
+    concat_path = f"{workdir}/concat.txt"
+    with open(concat_path, "w") as f:
+        for p in clip_paths:
+            f.write(f"file '{p}'\n")
+    final_path = f"{workdir}/final.mp4"
+    proc = subprocess.run([FFMPEG, "-y", "-f", "concat", "-safe", "0", "-i", concat_path,
+        "-c", "copy", final_path], capture_output=True)
+    if proc.returncode != 0:
+        raise HTTPException(500, f"ffmpeg concat failed: {proc.stderr.decode(errors='ignore')[:400]}")
+    return FileResponse(final_path, media_type="video/mp4", filename="reelwright-video.mp4")
+
 @app.get("/ai-test", response_class=HTMLResponse)
 def ai_test_page():
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>AI test</title>
@@ -191,23 +256,28 @@ def ai_test_page():
 label{display:block;font-size:13px;color:#666;margin:10px 0 4px}
 input,select,textarea{width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:4px}
 button{margin-top:12px;padding:9px 14px;border:0;border-radius:4px;background:#f2a53c;font-weight:700;cursor:pointer}
-pre{white-space:pre-wrap;background:#f4f4f4;padding:10px;border-radius:4px;font-size:13px}</style></head>
+pre{white-space:pre-wrap;background:#f4f4f4;padding:10px;border-radius:4px;font-size:13px}
+video{width:100%;margin-top:10px}</style></head>
 <body><h2>AI test page</h2>
 <label>Access token (from /app, after logging in)</label><textarea id="tok" rows="2"></textarea>
 <label>Topic</label><input id="topic" value="The history of the pyramids">
-<label>Duration (seconds)</label><input id="dur" type="number" value="90">
+<label>Duration (seconds)</label><input id="dur" type="number" value="45">
 <label>Language</label><select id="lang"><option>English</option><option>French</option><option>Moroccan Darija</option><option>Arabic</option><option>Spanish</option></select>
 <button id="go1">Generate script</button>
 <pre id="out1"></pre>
 <div id="scenes"></div>
+<button id="govid" style="display:none;background:#5bc48a">Generate full video</button>
+<div id="vidout"></div>
 <script>
 const $=id=>document.getElementById(id);
+let lastScript=null;
 $("go1").onclick=async()=>{
  $("out1").textContent="Working…";
  const r=await fetch("/ai/script",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+$("tok").value.trim()},
   body:JSON.stringify({topic:$("topic").value,duration_seconds:+$("dur").value,language:$("lang").value})});
  const d=await r.json();
  if(!r.ok){$("out1").textContent="Error: "+JSON.stringify(d);return}
+ lastScript=d;
  $("out1").textContent=JSON.stringify(d,null,2);
  $("scenes").innerHTML=d.scenes.map((s,i)=>`<div style="margin-top:10px;padding:10px;border:1px solid #ddd;border-radius:4px">
   <b>${s.title}</b> (${s.seconds}s)<p>${s.narration}</p>
@@ -219,6 +289,16 @@ $("go1").onclick=async()=>{
   if(!r2.ok){$("a"+i).textContent="Error generating voice";return}
   const blob=await r2.blob();const url=URL.createObjectURL(blob);
   $("a"+i).innerHTML=`<audio controls src="${url}"></audio>`;b.textContent="Generate voice"});
+ $("govid").style.display="block";
+};
+$("govid").onclick=async()=>{
+ if(!lastScript)return;
+ $("vidout").textContent="Rendering video… this can take a minute or two.";
+ const r=await fetch("/ai/video",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+$("tok").value.trim()},
+  body:JSON.stringify({scenes:lastScript.scenes,language:$("lang").value,gender:"Female"})});
+ if(!r.ok){const d=await r.json().catch(()=>({}));$("vidout").textContent="Error: "+JSON.stringify(d);return}
+ const blob=await r.blob();const url=URL.createObjectURL(blob);
+ $("vidout").innerHTML=`<video controls src="${url}"></video><br><a href="${url}" download="reelwright-video.mp4">Download MP4</a>`;
 };
 </script></body></html>"""
 
