@@ -162,7 +162,10 @@ def ai_script(body: ScriptIn, user: User = Depends(current_user)):
               f"Make each scene's seconds roughly proportional to its narration length, summing to about {body.duration_seconds}.")
     msg = client.messages.create(model="claude-sonnet-5", max_tokens=2000,
         messages=[{"role": "user", "content": prompt}])
-    text = msg.content[0].text.strip()
+    text = next((b.text for b in msg.content if getattr(b, "type", None) == "text" and getattr(b, "text", None)), None)
+    if not text:
+        raise HTTPException(502, "The AI response had no text content. Please try again.")
+    text = text.strip()
     if text.startswith("```"):
         text = text.split("```")[1]
         if text.startswith("json"):
