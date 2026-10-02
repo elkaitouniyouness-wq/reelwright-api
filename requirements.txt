@@ -5,3 +5,5 @@ psycopg2-binary==2.9.9
 bcrypt==4.0.1
 python-jose==3.3.0
 pydantic[email]==2.9.2
+anthropic==0.34.2
+edge-tts==6.1.9
