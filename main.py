@@ -23,7 +23,6 @@ VOICE_MAP = {
  ("Turkish","Female"):"tr-TR-EmelNeural", ("Turkish","Male"):"tr-TR-AhmetNeural",
 }
 
-# ---- Config (read from environment, never hard-code secrets) ----
 DATABASE_URL = os.environ["DATABASE_URL"]
 SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
@@ -33,7 +32,6 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
-# ---- Database model ----
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -54,7 +52,6 @@ def get_db():
     finally:
         db.close()
 
-# ---- Request/response shapes ----
 class SignupIn(BaseModel):
     name: str
     email: EmailStr
@@ -76,7 +73,6 @@ class BootstrapIn(BaseModel):
     email: EmailStr
     key: str
 
-# ---- App ----
 app = FastAPI(title="Reelwright API")
 
 app.add_middleware(
@@ -143,7 +139,6 @@ def login(body: LoginIn, db: Session = Depends(get_db)):
 def me(user: User = Depends(current_user)):
     return user
 
-# ---- AI: script generation (Claude API) ----
 class ScriptIn(BaseModel):
     topic: str
     duration_seconds: int = 180
@@ -160,7 +155,7 @@ def ai_script(body: ScriptIn, user: User = Depends(current_user)):
               f'Reply with ONLY valid JSON, no other text, no markdown fences, in this exact shape: '
               f'{{"scenes":[{{"title":"...","narration":"...","seconds":N}}]}}. '
               f"Make each scene's seconds roughly proportional to its narration length, summing to about {body.duration_seconds}.")
-    msg = client.messages.create(model="claude-sonnet-5", max_tokens=2000,
+    msg = client.messages.create(model="claude-sonnet-5", max_tokens=4096,
         messages=[{"role": "user", "content": prompt}])
     text = next((b.text for b in msg.content if getattr(b, "type", None) == "text" and getattr(b, "text", None)), None)
     if not text:
@@ -176,7 +171,6 @@ def ai_script(body: ScriptIn, user: User = Depends(current_user)):
         raise HTTPException(502, "The AI did not return valid JSON. Please try again.")
     return data
 
-# ---- AI: real voice-over (free, no API key — Microsoft Edge TTS) ----
 class VoiceIn(BaseModel):
     text: str
     language: str = "English"
@@ -190,7 +184,6 @@ async def ai_voice(body: VoiceIn, user: User = Depends(current_user)):
     await communicate.save(out_path)
     return FileResponse(out_path, media_type="audio/mpeg", filename="voiceover.mp3")
 
-# ---- Same-origin test page for the two AI endpoints above ----
 @app.get("/ai-test", response_class=HTMLResponse)
 def ai_test_page():
     return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>AI test</title>
@@ -229,7 +222,6 @@ $("go1").onclick=async()=>{
 };
 </script></body></html>"""
 
-# ---- Admin-only endpoints ----
 @app.get("/admin/users", response_model=list[UserOut])
 def list_users(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     return db.query(User).order_by(User.created_at.desc()).all()
@@ -252,8 +244,6 @@ def make_admin(user_id: int, admin: User = Depends(require_admin), db: Session =
     db.commit()
     return {"status": "promoted", "user_id": user_id}
 
-# ---- One-time bootstrap: promote the very first admin ----
-# Protected by ADMIN_BOOTSTRAP_KEY. Remove that env var from Render once used.
 @app.post("/admin/bootstrap", response_model=UserOut)
 def bootstrap_admin(body: BootstrapIn, db: Session = Depends(get_db)):
     expected = os.environ.get("ADMIN_BOOTSTRAP_KEY")
