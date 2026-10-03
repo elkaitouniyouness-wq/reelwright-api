@@ -1,5 +1,5 @@
-import os, datetime, json, uuid, subprocess, tempfile, textwrap
-from fastapi import FastAPI, HTTPException, Depends, Header
+import os, datetime, json, uuid, subprocess, tempfile, textwrap, hmac, hashlib
+from fastapi import FastAPI, HTTPException, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, EmailStr
@@ -14,6 +14,10 @@ import imageio_ffmpeg
 
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+PADDLE_WEBHOOK_SECRET = os.environ.get("PADDLE_WEBHOOK_SECRET")
+PADDLE_CLIENT_TOKEN = os.environ.get("PADDLE_CLIENT_TOKEN")
+PADDLE_PRICE_ID = os.environ.get("PADDLE_PRICE_ID")
+PADDLE_ENV = os.environ.get("PADDLE_ENV", "sandbox")
 VOICE_MAP = {
  ("English","Female"):"en-US-AriaNeural", ("English","Male"):"en-US-GuyNeural",
  ("French","Female"):"fr-FR-DeniseNeural", ("French","Male"):"fr-FR-HenriNeural",
@@ -303,6 +307,82 @@ $("govid").onclick=async()=>{
  if(!r.ok){const d=await r.json().catch(()=>({}));$("vidout").textContent="Error: "+JSON.stringify(d);return}
  const blob=await r.blob();const url=URL.createObjectURL(blob);
  $("vidout").innerHTML=`<video controls preload="auto" autoplay muted playsinline src="${url}"></video><br><a href="${url}" download="reelwright-video.mp4">Download MP4</a>`;
+};
+</script></body></html>"""
+
+# ---- Payments (Paddle) ----
+@app.get("/payments/config")
+def payments_config(user: User = Depends(current_user)):
+    if not PADDLE_CLIENT_TOKEN or not PADDLE_PRICE_ID:
+        raise HTTPException(500, "Paddle is not configured on the server yet")
+    return {"client_token": PADDLE_CLIENT_TOKEN, "price_id": PADDLE_PRICE_ID,
+            "environment": PADDLE_ENV, "user_id": user.id, "email": user.email}
+
+def _verify_paddle_signature(raw_body: bytes, signature_header: str) -> bool:
+    if not PADDLE_WEBHOOK_SECRET or not signature_header:
+        return False
+    try:
+        parts = dict(p.split("=", 1) for p in signature_header.split(";"))
+        ts, h1 = parts.get("ts"), parts.get("h1")
+        if not ts or not h1:
+            return False
+        signed_payload = f"{ts}:".encode() + raw_body
+        computed = hmac.new(PADDLE_WEBHOOK_SECRET.encode(), signed_payload, hashlib.sha256).hexdigest()
+        return hmac.compare_digest(computed, h1)
+    except Exception:
+        return False
+
+@app.post("/payments/webhook")
+async def paddle_webhook(request: Request, db: Session = Depends(get_db)):
+    raw = await request.body()
+    sig = request.headers.get("paddle-signature", "")
+    if not _verify_paddle_signature(raw, sig):
+        raise HTTPException(400, "Invalid webhook signature")
+    event = json.loads(raw)
+    event_type = event.get("event_type", "")
+    data = event.get("data", {})
+    custom = data.get("custom_data") or {}
+    user_id = custom.get("user_id")
+    if user_id:
+        u = db.get(User, int(user_id))
+        if u:
+            if event_type in ("subscription.created", "subscription.activated", "subscription.updated", "transaction.completed"):
+                u.plan = "Pro"
+            elif event_type in ("subscription.canceled", "subscription.paused"):
+                u.plan = "Free"
+            db.commit()
+    return {"status": "ok"}
+
+@app.get("/billing", response_class=HTMLResponse)
+def billing_page():
+    return """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Billing</title>
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<style>body{font-family:system-ui;max-width:420px;margin:40px auto;padding:0 16px}
+button{padding:10px 16px;border:0;border-radius:6px;background:#f2a53c;font-weight:700;cursor:pointer}
+label{display:block;margin:10px 0 4px;font-size:13px;color:#666}
+textarea{width:100%;box-sizing:border-box;padding:8px}
+pre{white-space:pre-wrap;background:#f4f4f4;padding:10px;border-radius:4px;font-size:13px}</style></head>
+<body><h2>Billing test</h2>
+<label>Access token (from /app, after logging in)</label><textarea id="tok" rows="2"></textarea>
+<button id="go">Upgrade to Pro</button>
+<pre id="status"></pre>
+<script>
+const $=id=>document.getElementById(id);
+$("go").onclick=async()=>{
+ $("status").textContent="Loading…";
+ try{
+  const r=await fetch("/payments/config",{headers:{"Authorization":"Bearer "+$("tok").value.trim()}});
+  const cfg=await r.json();
+  if(!r.ok){$("status").textContent="Error: "+JSON.stringify(cfg);return}
+  Paddle.Environment.set(cfg.environment);
+  Paddle.Initialize({token:cfg.client_token});
+  Paddle.Checkout.open({
+    items:[{priceId:cfg.price_id, quantity:1}],
+    customer:{email:cfg.email},
+    customData:{user_id:String(cfg.user_id)}
+  });
+  $("status").textContent="Checkout opened in overlay.";
+ }catch(e){$("status").textContent="Error: "+e.message}
 };
 </script></body></html>"""
 
