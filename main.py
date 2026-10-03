@@ -302,7 +302,7 @@ $("govid").onclick=async()=>{
   body:JSON.stringify({scenes:lastScript.scenes,language:$("lang").value,gender:"Female"})});
  if(!r.ok){const d=await r.json().catch(()=>({}));$("vidout").textContent="Error: "+JSON.stringify(d);return}
  const blob=await r.blob();const url=URL.createObjectURL(blob);
- $("vidout").innerHTML=`<video controls src="${url}"></video><br><a href="${url}" download="reelwright-video.mp4">Download MP4</a>`;
+ $("vidout").innerHTML=`<video controls preload="auto" autoplay muted playsinline src="${url}"></video><br><a href="${url}" download="reelwright-video.mp4">Download MP4</a>`;
 };
 </script></body></html>"""
 
