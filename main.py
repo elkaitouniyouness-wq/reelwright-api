@@ -375,13 +375,15 @@ $("go").onclick=async()=>{
   const cfg=await r.json();
   if(!r.ok){$("status").textContent="Error: "+JSON.stringify(cfg);return}
   Paddle.Environment.set(cfg.environment);
-  Paddle.Initialize({token:cfg.client_token});
+  Paddle.Initialize({token:cfg.client_token, eventCallback:function(e){
+    $("status").textContent="Event: "+e.name+"\n"+JSON.stringify(e.data||{}, null, 2);
+  }});
   Paddle.Checkout.open({
     items:[{priceId:cfg.price_id, quantity:1}],
     customer:{email:cfg.email},
     customData:{user_id:String(cfg.user_id)}
   });
-  $("status").textContent="Checkout opened in overlay.";
+  $("status").textContent="Checkout opened in overlay. Config used:\n"+JSON.stringify(cfg,null,2);
  }catch(e){$("status").textContent="Error: "+e.message}
 };
 </script></body></html>"""
