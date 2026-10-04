@@ -3,63 +3,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Reelwright — AI Video Studio</title>
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#171019;--pn:#211823;--pn2:#2b1f2e;--ln:#40323f;--tx:#f4ece8;--mu:#a9939f;--amb:#f2a53c;--cy:#4fc6bd;--rose:#e8607a;--ok:#5cc48a;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#fbf4ec;--pn:#fff;--pn2:#f3e7da;--ln:#e2d2bf;--tx:#231a15;--mu:#7a6a5d;--amb:#c9741f;--cy:#0e8f86;--rose:#c93b5b;--ok:#1f8a58}}
-:root[data-theme="light"]{--bg:#fbf4ec;--pn:#fff;--pn2:#f3e7da;--ln:#e2d2bf;--tx:#231a15;--mu:#7a6a5d;--amb:#c9741f;--cy:#0e8f86;--rose:#c93b5b;--ok:#1f8a58}
+:root{
+ --bg:#09090f; --canvas:#0d0d16; --pn:#15151f; --pn2:#1c1c29; --ln:#28283a; --ln2:#34344a;
+ --tx:#f2f1fa; --mu:#8d8ba8; --mu2:#5f5d7a;
+ --v1:#7c5cff; --v2:#ff5c9a; --v3:#ffb84d;
+ --grad:linear-gradient(120deg,var(--v1),var(--v2) 55%,var(--v3));
+ --ok:#4ade80; --err:#ff6b7a;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
+}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "Instrument Sans",system-ui,sans-serif}
-h1,h2,h3{font-family:"Fraunces",Georgia,serif;margin:0;letter-spacing:-.01em;font-weight:600}
-h1{font-size:clamp(28px,4vw,42px);line-height:1.08}h2{font-size:22px}h3{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "Inter",system-ui,sans-serif;background-image:radial-gradient(60% 50% at 85% -10%,rgba(124,92,255,.14),transparent),radial-gradient(40% 40% at 0% 100%,rgba(255,92,154,.08),transparent);background-attachment:fixed}
+h1,h2,h3{font-family:"Instrument Serif",Georgia,serif;margin:0;font-weight:400;letter-spacing:-.01em}
+h1{font-size:clamp(32px,4.2vw,50px);line-height:1.05}h2{font-size:28px}h3{font-size:19px;font-family:"Inter";font-weight:700;letter-spacing:-.01em}
 button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;background:var(--pn2);border:1px solid var(--ln);border-radius:8px;padding:10px 16px;transition:border-color .15s}
-button:hover{border-color:var(--amb)}button:disabled{opacity:.5;cursor:default}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--amb);outline-offset:2px}
-button.p{background:var(--amb);border-color:var(--amb);color:#231405;font-weight:700}
-button.p:hover{filter:brightness(1.08)}
-button.ghost{background:none;border-color:transparent}
-input,select,textarea{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:10px 12px;width:100%}
-textarea{resize:vertical}label{display:block;font-size:12.5px;color:var(--mu);margin:12px 0 5px;letter-spacing:.02em;text-transform:uppercase}
-#app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
-nav{background:var(--pn);border-right:1px solid var(--ln);padding:20px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px}
-.logo{font-family:"Fraunces";font-weight:800;font-size:22px;padding:2px 10px 20px;display:flex;align-items:baseline;gap:5px}
-.logo em{font-style:normal;color:var(--amb)}
-nav button.nv{text-align:left;border:0;background:none;padding:11px 12px;border-radius:6px;color:var(--mu);border-left:2px solid transparent;font-weight:500}
-nav button.nv.on{background:var(--pn2);color:var(--tx);border-left:2px solid var(--amb);font-weight:700}
-nav .adm{color:var(--rose)}
-.plan-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.03em;text-transform:uppercase}
-.plan-badge.free{background:var(--pn2);color:var(--mu);border:1px solid var(--ln)}
-.plan-badge.pro{background:linear-gradient(120deg,var(--amb),var(--rose));color:#2a1405}
-main{padding:30px 36px;min-width:0}
+button{cursor:pointer;background:var(--pn2);border:1px solid var(--ln2);border-radius:10px;padding:11px 18px;transition:.15s border-color,.15s transform;font-weight:600;font-size:14px}
+button:hover{border-color:var(--v1)}button:active{transform:scale(.98)}button:disabled{opacity:.45;cursor:default;transform:none}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--v1);outline-offset:2px}
+button.p{background:var(--grad);border:0;color:#160b2e;font-weight:800;box-shadow:0 8px 24px -8px rgba(124,92,255,.55)}
+button.p:hover{filter:brightness(1.07)}
+button.ghost{background:none;border-color:transparent;color:var(--mu)}
+input,select,textarea{background:var(--canvas);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;width:100%}
+input:hover,select:hover,textarea:hover{border-color:var(--ln2)}
+textarea{resize:vertical}label{display:block;font-size:13px;color:var(--mu);margin:16px 0 6px;font-weight:500}
+#app{display:grid;grid-template-columns:76px 1fr;min-height:100vh}
+nav{background:rgba(21,21,31,.6);backdrop-filter:blur(16px);border-right:1px solid var(--ln);padding:18px 0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;gap:6px}
+.mark{width:40px;height:40px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:"Instrument Serif";font-size:22px;color:#160b2e;margin-bottom:22px;flex:none}
+nav button.nv{width:48px;height:48px;border-radius:12px;border:1px solid transparent;background:none;display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--mu);padding:0}
+nav button.nv.on{background:var(--pn2);border-color:var(--ln2);color:var(--tx)}
+nav button.nv:hover{color:var(--tx)}
+.nav-foot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--pn2);border:1px solid var(--ln2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--v2)}
+main{padding:36px 44px 60px;min-width:0;max-width:1180px}
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.card{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:20px}
+.card{background:rgba(21,21,31,.72);backdrop-filter:blur(10px);border:1px solid var(--ln);border-radius:16px;padding:24px}
+.canvas{background:var(--canvas);border:1px solid var(--ln);border-radius:20px;padding:28px;position:relative;overflow:hidden}
+.canvas::before{content:"";position:absolute;inset:-40% -20% auto -20%;height:60%;background:radial-gradient(ellipse at top,rgba(124,92,255,.18),transparent 70%);pointer-events:none}
 .mu{color:var(--mu)}
-.chip{display:inline-block;padding:6px 14px;border:1px solid var(--ln);border-radius:99px;font-size:13px;margin:0 6px 6px 0;background:var(--pn);cursor:pointer}
-.chip.on{background:var(--amb);color:#231405;border-color:var(--amb);font-weight:700}
-.two{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
-hr.d{border:0;border-top:1px solid var(--ln);margin:26px 0}
-.scene{background:var(--pn2);border:1px solid var(--ln);border-radius:8px;padding:14px 16px;margin-bottom:10px}
-.scene b{color:var(--amb)}
+.chip{display:inline-flex;align-items:center;padding:7px 15px;border:1px solid var(--ln2);border-radius:99px;font-size:13px;margin:0 7px 7px 0;background:var(--canvas);cursor:pointer;font-weight:500}
+.chip.on{background:var(--grad);color:#160b2e;border-color:transparent;font-weight:700}
+.two{display:grid;grid-template-columns:.95fr 1.3fr;gap:20px;align-items:start}
+hr.d{border:0;border-top:1px solid var(--ln);margin:30px 0}
+.scene{position:relative;background:var(--pn);border:1px solid var(--ln);border-left:2px solid var(--v1);border-radius:10px;padding:16px 18px;margin-bottom:10px}
+.scene .t{font-weight:700;color:var(--tx)}
 audio{width:100%;margin-top:8px;height:34px}
-video{width:100%;border-radius:8px;background:#000;margin-top:14px}
-.step{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-.step .n{width:24px;height:24px;border-radius:50%;background:var(--pn2);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+video{width:100%;border-radius:14px;background:#000;margin-top:4px;border:1px solid var(--ln)}
+.step{display:flex;align-items:center;gap:12px;padding:10px 0}
+.step .n{width:26px;height:26px;border-radius:50%;background:var(--canvas);border:1px solid var(--ln2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;color:var(--mu)}
 .step.done .n{background:var(--ok);border-color:var(--ok);color:#06331c}
-.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.gate .card{width:100%;max-width:380px}
-.gate .logo{justify-content:center;padding-bottom:4px}
-.err{color:var(--rose);font-size:13px;margin-top:8px}
-.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;margin-right:6px;vertical-align:-2px}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative}
+.gate .card{width:100%;max-width:400px;padding:34px}
+.gate .mark{margin:0 auto 18px}
+.err{color:var(--err);font-size:13px;margin-top:10px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;margin-right:7px;vertical-align:-2px}
 @keyframes sp{to{transform:rotate(360deg)}}
-.pricebox{background:linear-gradient(145deg,var(--pn2),var(--pn));border:1px solid var(--ln);border-radius:12px;padding:28px;text-align:center}
-.pricebox .amt{font-family:"Fraunces";font-size:46px;font-weight:700;color:var(--amb)}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:500;font-size:12px;text-transform:uppercase}
-.stat{font-family:"Fraunces";font-size:30px;font-weight:600}
-@media(max-width:860px){#app{grid-template-columns:1fr}nav{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;overflow-x:auto;z-index:5;border-right:0;border-top:1px solid var(--ln);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
-.logo,.nav-foot{display:none}nav button.nv{white-space:nowrap;padding:9px 13px}main{padding:18px 16px 92px}.two{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.pricebox{background:var(--canvas);border:1px solid var(--ln);border-radius:20px;padding:36px;text-align:center;position:relative;overflow:hidden}
+.pricebox::before{content:"";position:absolute;inset:-60% -30% auto -30%;height:80%;background:radial-gradient(ellipse at top,rgba(255,92,154,.18),transparent 70%)}
+.pricebox .amt{font-family:"Instrument Serif";font-size:58px;color:var(--tx);position:relative}
+.pricebox .amt span{font-family:"Inter";font-size:16px;color:var(--mu);font-weight:500}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 13px;border-radius:99px;position:relative}
+.badge.free{background:var(--pn2);color:var(--mu);border:1px solid var(--ln2)}
+.badge.pro{background:var(--grad);color:#160b2e}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:600;font-size:13px}
+.stat{font-family:"Instrument Serif";font-size:38px;color:var(--tx)}
+.tabs{display:flex;gap:4px;background:var(--canvas);border:1px solid var(--ln);border-radius:12px;padding:4px;margin-bottom:4px}
+.tabs .chip{margin:0;border-radius:9px;background:none;border:0;flex:1;text-align:center;justify-content:center}
+.tabs .chip.on{background:var(--pn2);color:var(--tx)}
+@media(max-width:860px){#app{grid-template-columns:1fr}nav{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;justify-content:space-around;padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--ln)}
+.mark,.nav-foot{display:none}main{padding:22px 18px 90px}.two{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <div id="root"></div>
 <script>
@@ -67,12 +80,10 @@ const API="";
 const $=(s,r=document)=>r.querySelector(s);
 const LANGS=["English","French","Moroccan Darija","Arabic","Spanish","German","Italian","Portuguese","Turkish"];
 const DUR=[30,45,60,90,120,180,300];
-const fmt=s=>s>=60?Math.floor(s/60)+"m"+(s%60?" "+s%60+"s":""):s+"s";
 let S={authed:false,token:"",me:null,authMode:"login",busy:false,err:"",view:"Create",
  topic:"Create a video explaining the history of the pyramids",dur:60,lang:"English",gender:"Female",
  scenes:null,scriptBusy:false,scriptErr:"",videoBusy:false,videoErr:"",videoUrl:"",
- billingBusy:false,billingErr:"",
- users:[],usersErr:""};
+ billingBusy:false,billingErr:"",users:[],usersErr:""};
 
 async function api(path,method,body,asBlob){
  const r=await fetch(API+path,{method,headers:{"Content-Type":"application/json",...(S.token?{Authorization:"Bearer "+S.token}:{})},body:body?JSON.stringify(body):undefined});
@@ -84,82 +95,89 @@ async function api(path,method,body,asBlob){
 async function loadMe(){try{S.me=await api("/me","GET")}catch(e){S.authed=false;S.token=""}}
 
 function renderGate(){const su=S.authMode=="signup";return `<div class="gate"><div class="card">
-<div class="logo">Reel<em>wright</em></div><p class="mu" style="text-align:center;margin:0 0 18px">AI video studio</p>
-<div class="row" style="justify-content:center;gap:6px"><span class="chip ${!su?"on":""}" role="button" tabindex="0" data-am="login">Log in</span><span class="chip ${su?"on":""}" role="button" tabindex="0" data-am="signup">Sign up</span></div>
+<div class="mark">R</div><h1 style="text-align:center">Reelwright</h1><p class="mu" style="text-align:center;margin:8px 0 20px">Your AI video studio</p>
+<div class="tabs"><span class="chip ${!su?"on":""}" role="button" tabindex="0" data-am="login">Log in</span><span class="chip ${su?"on":""}" role="button" tabindex="0" data-am="signup">Sign up</span></div>
 ${su?`<label>Name</label><input id="gn" placeholder="Your name">`:""}
 <label>Email</label><input id="ge" type="email" placeholder="you@example.com">
 <label>Password</label><input id="gp" type="password" placeholder="••••••••">
 ${S.err?`<p class="err">${S.err}</p>`:""}
-<button class="p" id="go" style="width:100%;margin-top:16px" ${S.busy?"disabled":""}>${S.busy?'<span class="spin"></span>Please wait':(su?"Create account":"Sign in")}</button>
-<p class="mu" style="font-size:12px;margin-top:14px;text-align:center">First call can take ~30s — free hosting waking up.</p>
+<button class="p" id="go" style="width:100%;margin-top:18px" ${S.busy?"disabled":""}>${S.busy?'<span class="spin"></span>Please wait':(su?"Create account":"Sign in")}</button>
+<p class="mu" style="font-size:12px;margin-top:16px;text-align:center">First call can take ~30s — free hosting waking up.</p>
 </div></div>`}
 
-function renderNav(){const items=[["Create","🎬"],["Billing","💳"]].concat(S.me&&S.me.role=="admin"?[["Admin","🛠️"]]:[]);
- const plan=S.me?S.me.plan:"Free";
- return `<div class="logo">Reel<em>wright</em></div>`+
- items.map(([n])=>`<button class="nv ${n==S.view?"on":""} ${n=="Admin"?"adm":""}" data-v="${n}">${n}</button>`).join("")+
- `<div class="nav-foot" style="margin-top:auto;padding:12px 10px">
-  <span class="plan-badge ${plan=="Pro"?"pro":"free"}">${plan=="Pro"?"★ Pro":"Free plan"}</span>
-  <p class="mu" style="font-size:12px;margin:10px 0 4px;word-break:break-all">${S.me?S.me.email:""}</p>
-  <button class="ghost" id="logout" style="padding:6px 4px">Sign out</button></div>`}
+function renderNav(){const items=[["Create","✦"],["Billing","◆"]].concat(S.me&&S.me.role=="admin"?[["Admin","⚙"]]:[]);
+ const initial=(S.me&&S.me.name?S.me.name[0]:"U").toUpperCase();
+ return `<div class="mark">R</div>`+
+ items.map(([n,ic])=>`<button class="nv ${n==S.view?"on":""}" data-v="${n}" title="${n}">${ic}</button>`).join("")+
+ `<div class="nav-foot"><div class="avatar" title="${S.me?S.me.email:""}">${initial}</div><button class="ghost nv" id="logout" title="Sign out" style="font-size:15px">⏻</button></div>`}
 
 function chips(list,cur,key){return list.map(x=>`<span class="chip ${x==cur?"on":""}" role="button" tabindex="0" data-k="${key}" data-x="${x}">${x}</span>`).join("")}
 
 function renderCreate(){
- return `<h1>What will you make today?</h1><p class="mu">Real AI script, real voice-over, real video — generated live.</p>
- <div class="two" style="margin-top:22px">
+ const plan=S.me?S.me.plan:"Free";
+ return `<div class="row" style="justify-content:space-between;align-items:flex-start">
+  <div><h1>What will you make today?</h1><p class="mu" style="margin-top:6px">Real script, real voice, real video — generated live by AI.</p></div>
+  <span class="badge ${plan=='Pro'?'pro':'free'}">${plan=='Pro'?'★ Pro':'Free plan'}</span>
+ </div>
+ <div class="two" style="margin-top:26px">
   <div class="card">
    <label>Your idea</label>
    <textarea id="topic" rows="3">${S.topic}</textarea>
    <label>Duration</label><div>${chips(DUR.map(String),String(S.dur),"dur")}</div>
    <label>Language</label><select id="lang">${LANGS.map(l=>`<option ${l==S.lang?"selected":""}>${l}</option>`).join("")}</select>
    <label>Narrator voice</label><div>${chips(["Female","Male"],S.gender,"gender")}</div>
-   <button class="p" id="genscript" style="margin-top:18px;width:100%" ${S.scriptBusy?"disabled":""}>${S.scriptBusy?'<span class="spin"></span>Writing script…':"① Generate script"}</button>
+   <button class="p" id="genscript" style="margin-top:20px;width:100%" ${S.scriptBusy?"disabled":""}>${S.scriptBusy?'<span class="spin"></span>Writing script…':"Generate script"}</button>
    ${S.scriptErr?`<p class="err">${S.scriptErr}</p>`:""}
+   <hr class="d">
+   <div class="step ${S.scenes?"done":""}"><span class="n">${S.scenes?"✓":"1"}</span><span class="mu">Claude writes the scene-by-scene script</span></div>
+   <div class="step ${S.videoUrl?"done":""}"><span class="n">${S.videoUrl?"✓":"2"}</span><span class="mu">Each scene gets a real AI voice-over</span></div>
+   <div class="step ${S.videoUrl?"done":""}"><span class="n">${S.videoUrl?"✓":"3"}</span><span class="mu">Scenes render into one MP4</span></div>
   </div>
-  <div class="card">
-   <h3>How it works</h3>
-   <div class="step ${S.scenes?"done":""}"><span class="n">${S.scenes?"✓":"1"}</span><span>Claude writes a scene-by-scene script</span></div>
-   <div class="step ${S.videoUrl?"done":""}"><span class="n">${S.videoUrl?"✓":"2"}</span><span>Each scene gets a real AI voice-over</span></div>
-   <div class="step ${S.videoUrl?"done":""}"><span class="n">${S.videoUrl?"✓":"3"}</span><span>Scenes are rendered into one MP4</span></div>
-   <p class="mu" style="margin-top:14px;font-size:13px">Rendering a full video can take 1–2 minutes depending on length.</p>
+  <div class="canvas" style="min-height:420px;display:flex;flex-direction:column">
+   ${!S.scenes?`<div style="margin:auto;text-align:center;position:relative">
+     <h1 style="color:var(--mu2)">Your video will appear here</h1>
+     <p class="mu" style="margin-top:8px">Fill in your idea on the left and generate a script to begin.</p></div>`:
+   `<div style="position:relative">
+     <h3>Script</h3>
+     <div style="margin-top:14px;max-height:${S.videoUrl?"180px":"none"};overflow:auto">
+      ${S.scenes.map(s=>`<div class="scene"><span class="t">${s.title}</span> <span class="mu">· ${s.seconds}s</span><p style="margin:8px 0 0">${s.narration}</p></div>`).join("")}
+     </div>
+     ${!S.videoUrl?`<button class="p" id="genvideo" style="margin-top:14px;width:100%" ${S.videoBusy?"disabled":""}>${S.videoBusy?'<span class="spin"></span>Rendering video — 1–2 minutes…':"Generate full video"}</button>`:""}
+     ${S.videoErr?`<p class="err">${S.videoErr}</p>`:""}
+     ${S.videoUrl?`<video controls preload="auto" autoplay muted playsinline src="${S.videoUrl}"></video>
+      <div class="row" style="margin-top:12px"><a href="${S.videoUrl}" download="reelwright-video.mp4"><button class="p">Download MP4</button></a>
+      <button id="again" class="ghost">Make another</button></div>`:""}
+    </div>`}
   </div>
- </div>
- ${S.scenes?`<hr class="d"><h2>Script</h2><div style="margin-top:14px">
-   ${S.scenes.map((s,i)=>`<div class="scene"><b>${s.title}</b> <span class="mu">· ${s.seconds}s</span><p style="margin:8px 0 0">${s.narration}</p></div>`).join("")}
-  </div>
-  <button class="p" id="genvideo" style="margin-top:8px" ${S.videoBusy?"disabled":""}>${S.videoBusy?'<span class="spin"></span>Rendering video — this can take a minute or two…':"② Generate full video"}</button>
-  ${S.videoErr?`<p class="err">${S.videoErr}</p>`:""}
-  ${S.videoUrl?`<video controls preload="auto" autoplay muted playsinline src="${S.videoUrl}"></video><br><a href="${S.videoUrl}" download="reelwright-video.mp4"><button style="margin-top:10px">⬇ Download MP4</button></a>`:""}
- `:""}`}
-
-function renderBilling(){const pro=S.me&&S.me.plan=="Pro";
- return `<h1>Billing</h1><p class="mu">Manage your Reelwright plan.</p>
- <div class="two" style="margin-top:22px;align-items:start">
-  <div class="pricebox">
-   <span class="plan-badge ${pro?"pro":"free"}">${pro?"★ Current plan":"Upgrade available"}</span>
-   <div class="amt">$10<span style="font-size:16px;color:var(--mu)">/month</span></div>
-   <h3 style="margin-top:6px">Reelwright Pro</h3>
-   <p class="mu">Longer videos, priority rendering, more AI generations.</p>
-   ${pro?`<button disabled style="width:100%;margin-top:14px">You're on Pro ✓</button>`:
-     `<button class="p" id="upgrade" style="width:100%;margin-top:14px" ${S.billingBusy?"disabled":""}>${S.billingBusy?'<span class="spin"></span>Loading…':"Upgrade to Pro"}</button>`}
-   ${S.billingErr?`<p class="err">${S.billingErr}</p>`:""}
-  </div>
-  <div class="card"><h3>Free plan includes</h3><p class="mu">AI script generation, AI voice-over, video rendering up to 90 seconds, Reelwright watermark.</p>
-  <h3 style="margin-top:16px">Pro adds</h3><p class="mu">Videos up to 10 minutes, no watermark, priority queue.</p></div>
  </div>`}
 
-function renderAdmin(){return `<h1>Admin console</h1><p class="mu">Signed in as ${S.me.email} · real data from your API</p>
-<div class="row" style="gap:14px;margin-top:18px">
+function renderBilling(){const pro=S.me&&S.me.plan=="Pro";
+ return `<h1>Billing</h1><p class="mu" style="margin-top:6px">Manage your Reelwright plan.</p>
+ <div class="two" style="margin-top:26px;align-items:start">
+  <div class="pricebox">
+   <span class="badge ${pro?"pro":"free"}" style="position:relative">${pro?"★ Current plan":"Upgrade available"}</span>
+   <div class="amt" style="margin-top:14px">$10<span>/month</span></div>
+   <h3 style="margin-top:10px">Reelwright Pro</h3>
+   <p class="mu">Longer videos, priority rendering, more generations.</p>
+   ${pro?`<button disabled style="width:100%;margin-top:18px">You're on Pro ✓</button>`:
+     `<button class="p" id="upgrade" style="width:100%;margin-top:18px" ${S.billingBusy?"disabled":""}>${S.billingBusy?'<span class="spin"></span>Loading…':"Upgrade to Pro"}</button>`}
+   ${S.billingErr?`<p class="err">${S.billingErr}</p>`:""}
+  </div>
+  <div class="card"><h3>Free plan</h3><p class="mu" style="margin-top:8px">AI script generation, AI voice-over, video rendering up to 90 seconds, Reelwright watermark.</p>
+  <hr class="d"><h3>Pro adds</h3><p class="mu" style="margin-top:8px">Videos up to 10 minutes, no watermark, priority queue.</p></div>
+ </div>`}
+
+function renderAdmin(){return `<h1>Admin console</h1><p class="mu" style="margin-top:6px">Signed in as ${S.me.email}</p>
+<div class="row" style="gap:14px;margin-top:22px">
  <div class="card" style="flex:1;min-width:140px"><span class="mu">Total users</span><div class="stat">${S.users.length}</div></div>
  <div class="card" style="flex:1;min-width:140px"><span class="mu">Pro users</span><div class="stat">${S.users.filter(u=>u.plan=="Pro").length}</div></div>
  <div class="card" style="flex:1;min-width:140px"><span class="mu">Admins</span><div class="stat">${S.users.filter(u=>u.role=="admin").length}</div></div>
 </div>
-<hr class="d"><h2>Users</h2>${S.usersErr?`<p class="err">${S.usersErr}</p>`:""}
-<table style="margin-top:10px"><tr><th>Name</th><th>Email</th><th>Role</th><th>Plan</th><th></th></tr>
+<hr class="d"><h3>Users</h3>${S.usersErr?`<p class="err">${S.usersErr}</p>`:""}
+<div class="card" style="margin-top:14px;padding:8px 20px"><table><tr><th>Name</th><th>Email</th><th>Role</th><th>Plan</th><th></th></tr>
 ${S.users.map(u=>`<tr><td>${u.name}</td><td class="mu">${u.email}</td><td>${u.role}</td><td>${u.plan}</td>
-<td>${u.role!="admin"?`<button data-promote="${u.id}">Make admin</button>`:""} <button data-suspend="${u.id}" style="border-color:var(--rose);color:var(--rose)">Suspend</button></td></tr>`).join("")}
-</table><button id="refresh-users" style="margin-top:12px">Refresh</button>`}
+<td><button data-suspend="${u.id}" style="border-color:var(--err);color:var(--err)" class="ghost">${u.role!="admin"?"":""}Suspend</button> ${u.role!="admin"?`<button data-promote="${u.id}" class="ghost">Make admin</button>`:""}</td></tr>`).join("")}
+</table></div><button id="refresh-users" class="ghost" style="margin-top:14px">Refresh</button>`}
 
 const V={Create:renderCreate,Billing:renderBilling,Admin:renderAdmin};
 function renderApp(){return `<div id="app"><nav>${renderNav()}</nav><main>${V[S.view]()}</main></div>`}
@@ -196,6 +214,7 @@ document.addEventListener("click", async e=>{
    S.videoUrl=URL.createObjectURL(blob);
   }catch(err){S.videoErr=err.message}
   S.videoBusy=false; keep(); return}
+ if(t.id=="again"){S.scenes=null;S.videoUrl="";keep();return}
  if(t.id=="upgrade"){
   S.billingBusy=true; S.billingErr=""; keep();
   try{
