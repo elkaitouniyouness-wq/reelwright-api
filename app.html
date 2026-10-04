@@ -2,226 +2,218 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Reelwright — AI Video Studio</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#171019;--pn:#211823;--pn2:#2b1f2e;--ln:#40323f;--tx:#f4ece8;--mu:#a9939f;--amb:#f2a53c;--cy:#4fc6bd;--rose:#e8607a;--ok:#5cc48a;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#fbf4ec;--pn:#fff;--pn2:#f3e7da;--ln:#e2d2bf;--tx:#231a15;--mu:#7a6a5d;--amb:#c9741f;--cy:#0e8f86;--rose:#c93b5b;--ok:#1f8a58}}
 :root[data-theme="light"]{--bg:#fbf4ec;--pn:#fff;--pn2:#f3e7da;--ln:#e2d2bf;--tx:#231a15;--mu:#7a6a5d;--amb:#c9741f;--cy:#0e8f86;--rose:#c93b5b;--ok:#1f8a58}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Instrument Sans",system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 "Instrument Sans",system-ui,sans-serif}
 h1,h2,h3{font-family:"Fraunces",Georgia,serif;margin:0;letter-spacing:-.01em;font-weight:600}
-h1{font-size:clamp(28px,4vw,44px);line-height:1.05}h2{font-size:21px}h3{font-size:15px}
+h1{font-size:clamp(28px,4vw,42px);line-height:1.08}h2{font-size:22px}h3{font-size:16px}
 button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;background:var(--pn2);border:1px solid var(--ln);border-radius:3px;padding:8px 14px}
-button:hover{border-color:var(--amb)}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--amb);outline-offset:2px}
+button{cursor:pointer;background:var(--pn2);border:1px solid var(--ln);border-radius:8px;padding:10px 16px;transition:border-color .15s}
+button:hover{border-color:var(--amb)}button:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--amb);outline-offset:2px}
 button.p{background:var(--amb);border-color:var(--amb);color:#231405;font-weight:700}
+button.p:hover{filter:brightness(1.08)}
 button.ghost{background:none;border-color:transparent}
-input,select,textarea{background:var(--pn);border:1px solid var(--ln);border-radius:3px;padding:9px 11px;width:100%}
-textarea{resize:vertical}label{display:block;font-size:12.5px;color:var(--mu);margin:11px 0 4px}
-#app{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
-nav{background:var(--pn);border-right:1px solid var(--ln);padding:18px 10px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:1px}
-.logo{font-family:"Fraunces";font-weight:700;font-size:21px;padding:2px 10px 18px;display:flex;align-items:baseline;gap:5px}
+input,select,textarea{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:10px 12px;width:100%}
+textarea{resize:vertical}label{display:block;font-size:12.5px;color:var(--mu);margin:12px 0 5px;letter-spacing:.02em;text-transform:uppercase}
+#app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+nav{background:var(--pn);border-right:1px solid var(--ln);padding:20px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px}
+.logo{font-family:"Fraunces";font-weight:800;font-size:22px;padding:2px 10px 20px;display:flex;align-items:baseline;gap:5px}
 .logo em{font-style:normal;color:var(--amb)}
-nav button{text-align:left;border:0;background:none;padding:9px 11px;border-radius:3px;color:var(--mu);border-left:2px solid transparent}
-nav button.on{background:var(--pn2);color:var(--tx);border-left:2px solid var(--amb);font-weight:600}
+nav button.nv{text-align:left;border:0;background:none;padding:11px 12px;border-radius:6px;color:var(--mu);border-left:2px solid transparent;font-weight:500}
+nav button.nv.on{background:var(--pn2);color:var(--tx);border-left:2px solid var(--amb);font-weight:700}
 nav .adm{color:var(--rose)}
-main{padding:26px 28px;min-width:0}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
-.card{background:var(--pn);border:1px solid var(--ln);border-radius:4px;padding:16px}
-.thumb{aspect-ratio:16/9;border-radius:3px;margin-bottom:10px}
-.mu{color:var(--mu)}.chip{display:inline-block;padding:5px 12px;border:1px solid var(--ln);border-radius:99px;font-size:13px;margin:0 6px 6px 0;background:var(--pn)}
-.chip.on{background:var(--amb);color:#231405;border-color:var(--amb);font-weight:600}
-.bar{height:7px;background:var(--pn2);border-radius:9px;overflow:hidden}.bar>div{height:100%;background:var(--amb);width:0;transition:width .2s}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.ed{display:grid;grid-template-columns:180px 1fr 220px;gap:12px;margin-top:14px}
-.prev{background:#0c0910;border-radius:4px;display:flex;align-items:center;justify-content:center;padding:12px;min-height:260px}
-.screen{background:linear-gradient(150deg,#3a2216,#8a3d1f 55%,#e8607a);position:relative;border-radius:3px;overflow:hidden;max-height:300px;color:#fff;display:flex;align-items:flex-end;justify-content:center;text-align:center;padding:14px}
-.screen b{background:rgba(0,0,0,.6);padding:3px 9px;border-radius:3px;font-size:15px;font-weight:400}
-.tl{margin-top:12px;background:var(--pn);border:1px solid var(--ln);border-radius:4px;padding:10px;overflow-x:auto}
-.trk{display:flex;align-items:center;height:34px;margin-bottom:4px}.trk>span{width:64px;flex:none;font-size:12px;color:var(--mu)}
-.lane{position:relative;height:30px;flex:1;min-width:600px;background:var(--pn2);border-radius:3px}
-.clip{position:absolute;top:2px;height:26px;border-radius:3px;background:var(--amb);color:#231405;font-size:11px;font-weight:600;padding:4px 6px;overflow:hidden;white-space:nowrap;border:1px solid rgba(0,0,0,.2);cursor:pointer}
-.clip.sel{outline:2px solid var(--rose)}.t-Audio .clip{background:var(--ok);color:#062;}.t-Text .clip,.t-Subtitle .clip{background:var(--cy);color:#032}.t-Image .clip{background:var(--rose);color:#fff}
-.head{position:absolute;top:0;bottom:0;width:2px;background:var(--rose);left:0;pointer-events:none}
-.log{max-height:110px;overflow:auto;font-size:13px;color:var(--mu);margin-top:8px}
-.divider{border:0;border-top:1px solid var(--ln);margin:22px 0}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:500}
-.stat{font-family:"Fraunces";font-size:30px;font-weight:600}
+.plan-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.03em;text-transform:uppercase}
+.plan-badge.free{background:var(--pn2);color:var(--mu);border:1px solid var(--ln)}
+.plan-badge.pro{background:linear-gradient(120deg,var(--amb),var(--rose));color:#2a1405}
+main{padding:30px 36px;min-width:0}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:20px}
+.mu{color:var(--mu)}
+.chip{display:inline-block;padding:6px 14px;border:1px solid var(--ln);border-radius:99px;font-size:13px;margin:0 6px 6px 0;background:var(--pn);cursor:pointer}
+.chip.on{background:var(--amb);color:#231405;border-color:var(--amb);font-weight:700}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+hr.d{border:0;border-top:1px solid var(--ln);margin:26px 0}
+.scene{background:var(--pn2);border:1px solid var(--ln);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.scene b{color:var(--amb)}
+audio{width:100%;margin-top:8px;height:34px}
+video{width:100%;border-radius:8px;background:#000;margin-top:14px}
+.step{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.step .n{width:24px;height:24px;border-radius:50%;background:var(--pn2);border:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+.step.done .n{background:var(--ok);border-color:var(--ok);color:#06331c}
 .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.gate .card{width:100%;max-width:360px}
-.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mu)}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
-@media(max-width:860px){#app{grid-template-columns:1fr}nav{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;overflow-x:auto;z-index:5;border-right:0;border-top:1px solid var(--ln);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
-.logo{display:none}nav button{white-space:nowrap;padding:8px 12px}main{padding:18px 16px 92px}.two,.ed{grid-template-columns:1fr}}
+.gate .card{width:100%;max-width:380px}
+.gate .logo{justify-content:center;padding-bottom:4px}
+.err{color:var(--rose);font-size:13px;margin-top:8px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;margin-right:6px;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pricebox{background:linear-gradient(145deg,var(--pn2),var(--pn));border:1px solid var(--ln);border-radius:12px;padding:28px;text-align:center}
+.pricebox .amt{font-family:"Fraunces";font-size:46px;font-weight:700;color:var(--amb)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:500;font-size:12px;text-transform:uppercase}
+.stat{font-family:"Fraunces";font-size:30px;font-weight:600}
+@media(max-width:860px){#app{grid-template-columns:1fr}nav{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;overflow-x:auto;z-index:5;border-right:0;border-top:1px solid var(--ln);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+.logo,.nav-foot{display:none}nav button.nv{white-space:nowrap;padding:9px 13px}main{padding:18px 16px 92px}.two{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body>
 <div id="root"></div>
 <script>
+const API="";
 const $=(s,r=document)=>r.querySelector(s);
-const NAV=["Dashboard","AI Create","Editor","Shorts","Templates","Assets","Projects","Brand Kit","Settings"];
-const MODES=["Idea","Script","URL","Image","Video","Document","Remix"];
-const DUR=[15,30,60,90,120,180,300,600,900,1800];
-const LANGS=["English","Arabic","Moroccan Darija","French","Spanish","German","Italian","Portuguese","Turkish"];
-const STYLES=["Documentary","News","Educational","Storytelling","Cinematic","History","Science","Technology","Business","Motivation","Travel","Kids","Gaming","Podcast","Product"];
-const FMT={"16:9":"16/9","9:16":"9/16","1:1":"1/1","4:5":"4/5"};
-const fmt=s=>s>=60?Math.floor(s/60)+" min"+(s%60?" "+s%60+" s":""):s+" s";
-const grad=i=>`linear-gradient(150deg,hsl(${(i*47+10)%360} 55% 30%),hsl(${(i*47+70)%360} 60% 55%))`;
-const API="https://reelwright-api.onrender.com";
-let S={authed:false,role:null,user:"",token:"",authMode:"login",busy:false,err:"",
- view:"Dashboard",mode:"Idea",dur:180,lang:"English",style:"Documentary",voice:"Female",
- scenes:[],clips:[],sel:null,ratio:"16:9",log:[],
- projects:[{n:"History of the pyramids",d:"Edited 2 h ago",i:1},{n:"Launch teaser",d:"Draft",i:4},{n:"Podcast ep. 12 clips",d:"5 Shorts",i:7}],
- job:null,shorts:[],brand:{name:"My Brand",c1:"#f2a53c",c2:"#e8607a",font:"Fraunces",sub:"Word highlight"},
- users:[]};
-async function api(path,method,body){
+const LANGS=["English","French","Moroccan Darija","Arabic","Spanish","German","Italian","Portuguese","Turkish"];
+const DUR=[30,45,60,90,120,180,300];
+const fmt=s=>s>=60?Math.floor(s/60)+"m"+(s%60?" "+s%60+"s":""):s+"s";
+let S={authed:false,token:"",me:null,authMode:"login",busy:false,err:"",view:"Create",
+ topic:"Create a video explaining the history of the pyramids",dur:60,lang:"English",gender:"Female",
+ scenes:null,scriptBusy:false,scriptErr:"",videoBusy:false,videoErr:"",videoUrl:"",
+ billingBusy:false,billingErr:"",
+ users:[],usersErr:""};
+
+async function api(path,method,body,asBlob){
  const r=await fetch(API+path,{method,headers:{"Content-Type":"application/json",...(S.token?{Authorization:"Bearer "+S.token}:{})},body:body?JSON.stringify(body):undefined});
+ if(asBlob){ if(!r.ok){let d=null;try{d=await r.json()}catch(e){} throw new Error((d&&d.detail)||"Request failed ("+r.status+")")} return await r.blob() }
  let d=null;try{d=await r.json()}catch(e){}
- if(!r.ok)throw new Error((d&&d.detail)||"Request failed ("+r.status+")");
+ if(!r.ok) throw new Error((d&&d.detail)||"Request failed ("+r.status+")");
  return d}
-const TIT=["Hook","The problem","Origins","Key turning point","How it works","Evidence","Impact today","Conclusion"];
-function scenesFor(topic,total){const n=Math.max(3,Math.min(8,Math.round(total/25)));
- return Array.from({length:n},(_,i)=>({t:i==n-1?"Conclusion":TIT[i%TIT.length],
- n:`${i==0?"Did you know? ":""}Narration for "${topic}" — part ${i+1}.`,v:["AI image","Stock video","AI video","Uploaded media"][i%4],voice:i%2?"Female":"Male",d:Math.round(total/n)}))}
-function build(){let t=0;S.clips=[];let id=0;
- S.scenes.forEach(sc=>{S.clips.push({id:id++,track:"Video",label:sc.t,s:t,d:sc.d,op:100,sp:1});
-  S.clips.push({id:id++,track:"Subtitle",label:sc.n.slice(0,30),s:t,d:sc.d,op:100,sp:1});t+=sc.d});
- S.clips.push({id:id++,track:"Audio",label:"AI voice-over",s:0,d:t,op:100,sp:1},{id:id++,track:"Audio",label:"Background music",s:0,d:t,op:35,sp:1},
- {id:id++,track:"Text",label:"Title card",s:0,d:Math.min(5,t),op:100,sp:1});S.total=t}
-const total=()=>S.scenes.reduce((a,x)=>a+x.d,0);
 
-function renderNav(){const items=NAV.concat(S.role=="admin"?["Admin"]:[]);
- return `<div class="logo">Reel<em>wright</em></div>`+items.map(n=>`<button class="${n==S.view?"on":""} ${n=="Admin"?"adm":""}" data-v="${n}">${n}</button>`).join("")
- +`<div style="margin-top:auto;padding:10px"><span class="badge"><span class="dot"></span>${S.user||"admin"}</span><br><button class="ghost" style="padding:6px 4px;margin-top:6px" id="logout">Sign out</button></div>`}
-function chips(list,cur,key){return list.map(x=>`<span class="chip ${x==cur?"on":""}" role="button" tabindex="0" data-k="${key}" data-x="${x}">${x}</span>`).join("")}
+async function loadMe(){try{S.me=await api("/me","GET")}catch(e){S.authed=false;S.token=""}}
 
-const V={};
-V.Dashboard=()=>`<h1>What will you make today?</h1><p class="mu">Start from an idea, a script, a link or a long video. Everything the AI makes stays editable.</p>
-<div class="row"><button class="p" data-go="AI Create">New AI video</button><button data-go="Shorts">Make Shorts from a long video</button><button data-go="Editor">Open editor</button></div>
-<hr class="divider"><h2>Recent projects</h2><div class="grid" style="margin-top:12px">${S.projects.map(p=>`<div class="card"><div class="thumb" style="background:${grad(p.i)}"></div><h3>${p.n}</h3><span class="mu">${p.d}</span></div>`).join("")}</div>
-<hr class="divider"><h2>Workflow</h2><p class="card mu" style="margin-top:12px">Idea → Script → Scenes → Visuals → Voice → Subtitles → Music → Edit → Thumbnail → SEO → Export</p>`;
-
-V["AI Create"]=()=>`<h1>AI Create</h1><div style="margin:14px 0">${chips(MODES,S.mode,"mode")}</div>
-<div class="two"><div class="card"><label for="in">${{Idea:"Your idea",Script:"Paste your script",URL:"Webpage or YouTube link",Image:"Describe the story for your images",Video:"What should change in your video?",Document:"What should the video focus on?",Remix:"How should the new version differ?"}[S.mode]}</label>
-<textarea id="in" rows="5">Create a 3-minute YouTube video explaining the history of the pyramids.</textarea>
-${["Image","Video","Document","Remix"].includes(S.mode)?`<label for="f">Upload files</label><input id="f" type="file" multiple>`:""}
-<label>Duration</label><div>${DUR.map(d=>`<span class="chip ${d==S.dur?"on":""}" role="button" tabindex="0" data-k="dur" data-x="${d}">${fmt(d)}</span>`).join("")}</div></div>
-<div class="card"><label>Language</label><select id="lang">${LANGS.map(l=>`<option ${l==S.lang?"selected":""}>${l}</option>`).join("")}</select>
-<label>Voice</label><div>${chips(["Female","Male","Mixed"],S.voice,"voice")}</div><label>Style</label><div>${chips(STYLES,S.style,"style")}</div>
-<label>Aspect ratio</label><div>${chips(Object.keys(FMT),S.ratio,"ratio")}</div></div></div>
-<div class="row" style="margin-top:14px"><button class="p" id="gen">Generate video</button><span class="mu">Applies your Brand Kit automatically.</span></div>
-<div id="job"></div><div id="res"></div>`;
-
-V.Editor=()=>{if(!S.clips.length){S.scenes=scenesFor("The history of the pyramids",S.dur);build()}
- const cur=S.clips.find(c=>c.id==S.sel),T=S.total,sc=S.scenes[0];
- return `<h1>Editor</h1><div class="row" style="margin-top:12px"><button data-a="split">Split</button><button data-a="del">Delete</button><button data-a="rev">Reverse</button>
- <span class="mu" style="margin-left:8px">Ratio</span>${Object.keys(FMT).map(r=>`<span class="chip ${r==S.ratio?"on":""}" role="button" tabindex="0" data-k="ratio" data-x="${r}">${r}</span>`).join("")}
- <button class="p" data-a="export" style="margin-left:auto">Export</button></div>
- <div class="ed"><div class="card"><h3>Library</h3><p class="mu">Media · AI tools · Text · Audio · Effects</p>${["Media","AI tools","Text","Audio","Effects","Stickers"].map(x=>`<div class="chip">${x}</div>`).join("")}</div>
- <div class="prev"><div class="screen" id="scr" style="aspect-ratio:${FMT[S.ratio]};height:${S.ratio=="9:16"?"280px":"auto"};width:${S.ratio=="9:16"?"auto":"100%"};max-width:100%"><b id="cap">${cur&&cur.track=="Subtitle"?cur.label:sc?sc.n:""}</b></div></div>
- <div class="card"><h3>Inspector</h3>${cur?`<label>Name</label><input data-p="label" value="${cur.label}"><label>Start (s)</label><input type="number" data-p="s" value="${cur.s}"><label>Duration (s)</label><input type="number" data-p="d" value="${cur.d}"><label>Opacity ${cur.op}%</label><input type="range" data-p="op" min="0" max="100" value="${cur.op}"><label>Speed ${cur.sp}×</label><input type="range" data-p="sp" min="0.25" max="4" step="0.25" value="${cur.sp}">`:`<p class="mu">Select a clip to change its timing, opacity or speed.</p>`}</div></div>
- <div class="tl"><div class="row" style="margin-bottom:8px"><button data-a="play">Play</button><span class="mu">${fmt(T)} total</span></div>
- ${["Video","Image","Text","Subtitle","Audio"].map(t=>`<div class="trk t-${t}"><span>${t}</span><div class="lane">${S.clips.filter(c=>c.track==t).map(c=>`<div class="clip ${c.id==S.sel?"sel":""}" data-c="${c.id}" style="left:${c.s/T*100}%;width:${Math.max(c.d/T*100,1.5)}%" title="${c.label}">${c.label}</div>`).join("")}${t=="Video"?'<div class="head" id="head"></div>':""}</div></div>`).join("")}</div>
- <div class="card" style="margin-top:12px"><h3>AI assistant</h3><div class="row"><input id="cmd" placeholder='Try: "make it 60 seconds", "add subtitles", "more cinematic"' style="flex:1"><button class="p" id="run">Run</button></div><div class="log" id="log">${S.log.map(l=>`<div>${l}</div>`).join("")}</div></div>`};
-
-V.Shorts=()=>`<h1>AI Shorts Factory</h1><p class="mu">Turn one long video into ready-to-post Shorts.</p>
-<div class="two" style="margin-top:14px"><div class="card"><label for="src">Video file or URL</label><input id="src" placeholder="https://youtube.com/watch?v=…"><label for="cnt">Number of Shorts</label><select id="cnt">${[5,10,20].map(n=>`<option>${n}</option>`).join("")}</select>
-<label>Mode</label><div>${chips(["Auto","Manual"],S.smode||"Auto","smode")}</div>${(S.smode=="Manual")?`<div class="row"><input placeholder="Start 00:12:30" style="width:48%"><input placeholder="End 00:13:20" style="width:48%"></div>`:""}
-<div style="margin-top:12px"><button class="p" id="mk">Find best moments</button></div><div id="job"></div></div>
-<div class="card"><h3>Each Short includes</h3><p class="mu">Hook · dynamic captions · auto reframing to 9:16 · music · title · description · hashtags · optional watermark</p></div></div>
-<div class="grid" style="margin-top:14px">${S.shorts.map((s,i)=>`<div class="card"><div class="thumb" style="aspect-ratio:9/12;background:${grad(i+2)}"></div><h3 contenteditable>${s.t}</h3><p class="mu">${fmt(s.d)} · from ${s.at}<br>${s.h}</p><button>Edit</button> <button class="p">Export</button></div>`).join("")}</div>`;
-
-V.Templates=()=>`<h1>Templates</h1><div class="grid" style="margin-top:14px">${STYLES.map((s,i)=>`<div class="card"><div class="thumb" style="background:${grad(i)}"></div><h3>${s}</h3><button data-style="${s}">Use style</button></div>`).join("")}</div>`;
-V.Assets=()=>`<h1>Assets</h1><div class="card"><label for="up">Upload media</label><input id="up" type="file" multiple><p class="mu">Video, images, audio, documents and voice recordings.</p></div><div class="grid" style="margin-top:14px">${Array.from({length:8},(_,i)=>`<div class="card"><div class="thumb" style="background:${grad(i+3)}"></div><span class="mu">clip_${i+1}.mp4</span></div>`).join("")}</div>`;
-V.Projects=()=>`<h1>Projects</h1><div class="grid" style="margin-top:14px">${S.projects.map((p,i)=>`<div class="card"><div class="thumb" style="background:${grad(p.i)}"></div><h3 contenteditable>${p.n}</h3><span class="mu">${p.d} · auto-saved</span><div class="row" style="margin-top:8px"><button data-dup="${i}">Duplicate</button><button data-rm="${i}">Delete</button></div></div>`).join("")}</div>`;
-V["Brand Kit"]=()=>`<h1>Brand Kit</h1><div class="card" style="max-width:520px;margin-top:14px"><label>Brand name</label><input data-b="name" value="${S.brand.name}"><label>Primary colour</label><input type="color" data-b="c1" value="${S.brand.c1}"><label>Secondary colour</label><input type="color" data-b="c2" value="${S.brand.c2}"><label>Font</label><input data-b="font" value="${S.brand.font}"><label>Default subtitle style</label><select data-b="sub">${["Word highlight","Classic","TikTok bold"].map(x=>`<option ${x==S.brand.sub?"selected":""}>${x}</option>`).join("")}</select><label>Logo, intro, outro, watermark</label><input type="file" multiple><div class="thumb" style="margin-top:12px;background:linear-gradient(150deg,${S.brand.c1},${S.brand.c2});display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:'${S.brand.font}',serif">${S.brand.name}</div></div>`;
-V.Settings=()=>`<h1>Settings</h1><div class="card" style="max-width:520px;margin-top:14px"><label>Theme</label><div>${chips(["Auto","Light","Dark"],S.theme||"Auto","theme")}</div><label>Default export</label><select><option>1080p · 30 FPS · MP4</option><option>4K · 60 FPS · MP4</option><option>720p · 24 FPS · MP4</option></select><p class="mu">Cloud storage and version history are on. Projects auto-save.</p></div>`;
-V.Admin=()=>`<h1>Admin console</h1><p class="mu">Signed in as ${S.user} · real data from your API</p>
-<div class="grid" style="margin-top:16px"><div class="card"><span class="mu">Total users</span><div class="stat">${S.users.length}</div></div>
-<div class="card"><span class="mu">Admins</span><div class="stat">${S.users.filter(u=>u.role=="admin").length}</div></div>
-<div class="card"><span class="mu">Active</span><div class="stat">${S.users.filter(u=>u.is_active!==false).length}</div></div></div>
-<hr class="divider"><h2>Users</h2>${S.usersErr?`<p style="color:var(--rose)">${S.usersErr}</p>`:""}
-<table style="margin-top:10px"><tr><th>Name</th><th>Email</th><th>Role</th><th>Plan</th><th></th></tr>${S.users.map(u=>`<tr><td>${u.name}</td><td class="mu">${u.email}</td><td>${u.role}</td><td class="mu">${u.plan}</td><td>${u.role!="admin"?`<button data-promote="${u.id}">Make admin</button>`:""} <button data-suspend="${u.id}" style="border-color:var(--rose);color:var(--rose)">Suspend</button></td></tr>`).join("")}</table>
-<button id="refresh-users" style="margin-top:12px">Refresh</button>`;
-
-function renderApp(){return `<div id="app"><nav id="nav">${renderNav()}</nav><main id="main">${V[S.view]()}</main></div>`}
-function renderGate(){const su=S.authMode=="signup";return `<div class="gate"><div class="card"><div class="logo" style="padding-bottom:6px">Reel<em>wright</em></div>
-<div class="row" style="gap:6px"><span class="chip ${!su?"on":""}" role="button" tabindex="0" data-am="login">Log in</span><span class="chip ${su?"on":""}" role="button" tabindex="0" data-am="signup">Sign up</span></div>
+function renderGate(){const su=S.authMode=="signup";return `<div class="gate"><div class="card">
+<div class="logo">Reel<em>wright</em></div><p class="mu" style="text-align:center;margin:0 0 18px">AI video studio</p>
+<div class="row" style="justify-content:center;gap:6px"><span class="chip ${!su?"on":""}" role="button" tabindex="0" data-am="login">Log in</span><span class="chip ${su?"on":""}" role="button" tabindex="0" data-am="signup">Sign up</span></div>
 ${su?`<label>Name</label><input id="gn" placeholder="Your name">`:""}
 <label>Email</label><input id="ge" type="email" placeholder="you@example.com">
 <label>Password</label><input id="gp" type="password" placeholder="••••••••">
-${S.err?`<p style="color:var(--rose);font-size:13px;margin-top:8px">${S.err}</p>`:""}
-<button class="p" id="go" style="width:100%;margin-top:14px" ${S.busy?"disabled":""}>${S.busy?"Please wait…":(su?"Create account":"Sign in")}</button>
-<p class="mu" style="font-size:12px;margin-top:12px">Free hosting can take ~30s to wake up on the first try.</p></div></div>`}
-async function loadUsers(){try{S.users=await api("/admin/users","GET");S.usersErr=""}catch(err){S.usersErr=err.message}keep()}
-function paint(){$("#root").innerHTML=S.authed?renderApp():renderGate();scrollTo(0,0);if(S.authed&&S.view=="Admin")loadUsers()}
-function keep(){const y=scrollY;$("#main").innerHTML=V[S.view]();scrollTo(0,y)}
+${S.err?`<p class="err">${S.err}</p>`:""}
+<button class="p" id="go" style="width:100%;margin-top:16px" ${S.busy?"disabled":""}>${S.busy?'<span class="spin"></span>Please wait':(su?"Create account":"Sign in")}</button>
+<p class="mu" style="font-size:12px;margin-top:14px;text-align:center">First call can take ~30s — free hosting waking up.</p>
+</div></div>`}
 
-function runJob(el,steps,done){if(S.job)clearInterval(S.job.t);let p=0,i=0;
- el.innerHTML=`<div class="card" style="margin-top:12px"><div class="row"><b id="op"></b><span class="mu" id="eta"></span><button id="cx" style="margin-left:auto">Cancel</button></div><div class="bar" style="margin-top:8px"><div id="pb"></div></div></div>`;
- const tick=()=>{p+=3+Math.random()*4;if(p>=100){clearInterval(S.job.t);S.job=null;el.innerHTML="";done();return}
-  i=Math.min(steps.length-1,Math.floor(p/100*steps.length));$("#op").textContent=steps[i]+" — "+Math.floor(p)+"%";$("#pb").style.width=p+"%";$("#eta").textContent="about "+Math.ceil((100-p)/12)+" s left"};
- S.job={t:setInterval(tick,250)};tick();
- $("#cx").onclick=()=>{clearInterval(S.job.t);S.job=null;el.innerHTML=`<div class="card" style="margin-top:12px">Cancelled. <button id="rt" class="p">Retry</button></div>`;$("#rt").onclick=()=>runJob(el,steps,done)}}
+function renderNav(){const items=[["Create","🎬"],["Billing","💳"]].concat(S.me&&S.me.role=="admin"?[["Admin","🛠️"]]:[]);
+ const plan=S.me?S.me.plan:"Free";
+ return `<div class="logo">Reel<em>wright</em></div>`+
+ items.map(([n])=>`<button class="nv ${n==S.view?"on":""} ${n=="Admin"?"adm":""}" data-v="${n}">${n}</button>`).join("")+
+ `<div class="nav-foot" style="margin-top:auto;padding:12px 10px">
+  <span class="plan-badge ${plan=="Pro"?"pro":"free"}">${plan=="Pro"?"★ Pro":"Free plan"}</span>
+  <p class="mu" style="font-size:12px;margin:10px 0 4px;word-break:break-all">${S.me?S.me.email:""}</p>
+  <button class="ghost" id="logout" style="padding:6px 4px">Sign out</button></div>`}
 
-const STEPS=["Analysing idea","Writing script","Splitting into scenes","Choosing visuals","Generating voice-over","Syncing subtitles","Adding music and transitions","Creating thumbnail and SEO"];
-function assist(c){c=c.toLowerCase();let r="Done: ";
- const m=c.match(/(\d+)\s*(second|sec|s\b|minute|min)/);
- if(m){const t=+m[1]*(/^m/.test(m[2])?60:1),k=t/total();S.scenes.forEach(x=>x.d=Math.max(2,Math.round(x.d*k)));build();return r+"video adapted to about "+fmt(total())}
- if(/short/.test(c)&&/(make|shorter)/.test(c)){S.scenes.forEach(x=>x.d=Math.max(2,Math.round(x.d*.8)));build();return r+"trimmed 20% (now "+fmt(total())+")"}
- if(/subtitle|caption/.test(c)){S.clips.push({id:Date.now(),track:"Subtitle",label:"Auto captions",s:0,d:Math.min(8,S.total),op:100,sp:1});return r+"auto captions added"}
- if(/music/.test(c)){S.clips.push({id:Date.now(),track:"Audio",label:"New music bed",s:0,d:S.total,op:30,sp:1});return r+"background music added"}
- if(/cinematic/.test(c)){S.style="Cinematic";S.ratio="16:9";return r+"style set to Cinematic, slow zooms on every scene"}
- if(/intro/.test(c)){S.clips.push({id:Date.now(),track:"Text",label:"Stronger intro hook",s:0,d:4,op:100,sp:1});return r+"intro hook added"}
- if(/voice|french|english|arabic/.test(c)){return r+"voice changed for all scenes"}
- return "I can trim, retime, add captions or music, change style and voice. Try one of those."}
+function chips(list,cur,key){return list.map(x=>`<span class="chip ${x==cur?"on":""}" role="button" tabindex="0" data-k="${key}" data-x="${x}">${x}</span>`).join("")}
 
-document.addEventListener("click",async e=>{const t=e.target,d=t.dataset||{};
+function renderCreate(){
+ return `<h1>What will you make today?</h1><p class="mu">Real AI script, real voice-over, real video — generated live.</p>
+ <div class="two" style="margin-top:22px">
+  <div class="card">
+   <label>Your idea</label>
+   <textarea id="topic" rows="3">${S.topic}</textarea>
+   <label>Duration</label><div>${chips(DUR.map(String),String(S.dur),"dur")}</div>
+   <label>Language</label><select id="lang">${LANGS.map(l=>`<option ${l==S.lang?"selected":""}>${l}</option>`).join("")}</select>
+   <label>Narrator voice</label><div>${chips(["Female","Male"],S.gender,"gender")}</div>
+   <button class="p" id="genscript" style="margin-top:18px;width:100%" ${S.scriptBusy?"disabled":""}>${S.scriptBusy?'<span class="spin"></span>Writing script…':"① Generate script"}</button>
+   ${S.scriptErr?`<p class="err">${S.scriptErr}</p>`:""}
+  </div>
+  <div class="card">
+   <h3>How it works</h3>
+   <div class="step ${S.scenes?"done":""}"><span class="n">${S.scenes?"✓":"1"}</span><span>Claude writes a scene-by-scene script</span></div>
+   <div class="step ${S.videoUrl?"done":""}"><span class="n">${S.videoUrl?"✓":"2"}</span><span>Each scene gets a real AI voice-over</span></div>
+   <div class="step ${S.videoUrl?"done":""}"><span class="n">${S.videoUrl?"✓":"3"}</span><span>Scenes are rendered into one MP4</span></div>
+   <p class="mu" style="margin-top:14px;font-size:13px">Rendering a full video can take 1–2 minutes depending on length.</p>
+  </div>
+ </div>
+ ${S.scenes?`<hr class="d"><h2>Script</h2><div style="margin-top:14px">
+   ${S.scenes.map((s,i)=>`<div class="scene"><b>${s.title}</b> <span class="mu">· ${s.seconds}s</span><p style="margin:8px 0 0">${s.narration}</p></div>`).join("")}
+  </div>
+  <button class="p" id="genvideo" style="margin-top:8px" ${S.videoBusy?"disabled":""}>${S.videoBusy?'<span class="spin"></span>Rendering video — this can take a minute or two…':"② Generate full video"}</button>
+  ${S.videoErr?`<p class="err">${S.videoErr}</p>`:""}
+  ${S.videoUrl?`<video controls preload="auto" autoplay muted playsinline src="${S.videoUrl}"></video><br><a href="${S.videoUrl}" download="reelwright-video.mp4"><button style="margin-top:10px">⬇ Download MP4</button></a>`:""}
+ `:""}`}
+
+function renderBilling(){const pro=S.me&&S.me.plan=="Pro";
+ return `<h1>Billing</h1><p class="mu">Manage your Reelwright plan.</p>
+ <div class="two" style="margin-top:22px;align-items:start">
+  <div class="pricebox">
+   <span class="plan-badge ${pro?"pro":"free"}">${pro?"★ Current plan":"Upgrade available"}</span>
+   <div class="amt">$10<span style="font-size:16px;color:var(--mu)">/month</span></div>
+   <h3 style="margin-top:6px">Reelwright Pro</h3>
+   <p class="mu">Longer videos, priority rendering, more AI generations.</p>
+   ${pro?`<button disabled style="width:100%;margin-top:14px">You're on Pro ✓</button>`:
+     `<button class="p" id="upgrade" style="width:100%;margin-top:14px" ${S.billingBusy?"disabled":""}>${S.billingBusy?'<span class="spin"></span>Loading…':"Upgrade to Pro"}</button>`}
+   ${S.billingErr?`<p class="err">${S.billingErr}</p>`:""}
+  </div>
+  <div class="card"><h3>Free plan includes</h3><p class="mu">AI script generation, AI voice-over, video rendering up to 90 seconds, Reelwright watermark.</p>
+  <h3 style="margin-top:16px">Pro adds</h3><p class="mu">Videos up to 10 minutes, no watermark, priority queue.</p></div>
+ </div>`}
+
+function renderAdmin(){return `<h1>Admin console</h1><p class="mu">Signed in as ${S.me.email} · real data from your API</p>
+<div class="row" style="gap:14px;margin-top:18px">
+ <div class="card" style="flex:1;min-width:140px"><span class="mu">Total users</span><div class="stat">${S.users.length}</div></div>
+ <div class="card" style="flex:1;min-width:140px"><span class="mu">Pro users</span><div class="stat">${S.users.filter(u=>u.plan=="Pro").length}</div></div>
+ <div class="card" style="flex:1;min-width:140px"><span class="mu">Admins</span><div class="stat">${S.users.filter(u=>u.role=="admin").length}</div></div>
+</div>
+<hr class="d"><h2>Users</h2>${S.usersErr?`<p class="err">${S.usersErr}</p>`:""}
+<table style="margin-top:10px"><tr><th>Name</th><th>Email</th><th>Role</th><th>Plan</th><th></th></tr>
+${S.users.map(u=>`<tr><td>${u.name}</td><td class="mu">${u.email}</td><td>${u.role}</td><td>${u.plan}</td>
+<td>${u.role!="admin"?`<button data-promote="${u.id}">Make admin</button>`:""} <button data-suspend="${u.id}" style="border-color:var(--rose);color:var(--rose)">Suspend</button></td></tr>`).join("")}
+</table><button id="refresh-users" style="margin-top:12px">Refresh</button>`}
+
+const V={Create:renderCreate,Billing:renderBilling,Admin:renderAdmin};
+function renderApp(){return `<div id="app"><nav>${renderNav()}</nav><main>${V[S.view]()}</main></div>`}
+function paint(){$("#root").innerHTML=S.authed?renderApp():renderGate();if(S.authed&&S.view=="Admin"&&!S.users.length)loadUsers()}
+function keep(){$("#root").innerHTML=S.authed?renderApp():renderGate()}
+
+async function loadUsers(){try{S.users=await api("/admin/users","GET");S.usersErr=""}catch(e){S.usersErr=e.message}keep()}
+
+document.addEventListener("click", async e=>{
+ const t=e.target, d=t.dataset||{};
  if(d.am){S.authMode=d.am;S.err="";paint();return}
  if(t.id=="go"){
-  const email=$("#ge").value.trim(),pass=$("#gp").value;S.busy=true;S.err="";paint();
+  const email=$("#ge").value.trim(), pass=$("#gp").value; S.busy=true; S.err=""; paint();
   try{
-   if(S.authMode=="signup"){await api("/auth/signup","POST",{name:$("#gn").value.trim()||email,email,password:pass});}
+   if(S.authMode=="signup") await api("/auth/signup","POST",{name:$("#gn").value.trim()||email,email,password:pass});
    const r=await api("/auth/login","POST",{email,password:pass});
-   S.token=r.access_token;S.user=r.user.name;S.role=r.user.role;S.authed=true
+   S.token=r.access_token; S.authed=true; await loadMe();
   }catch(err){S.err=err.message}
-  S.busy=false;paint();return}
- if(t.id=="logout"){S.authed=false;S.token="";S.user="";S.view="Dashboard";paint();return}
- if(!S.authed)return;
- if(d.k){const k=d.k,x=isNaN(d.x)?d.x:+d.x;if(k=="theme"){S.theme=x;const r=document.documentElement;x=="Auto"?r.removeAttribute("data-theme"):r.setAttribute("data-theme",x.toLowerCase())}
-  else S[k]=x;const ta=$("#in"),v=ta&&ta.value;keep();if(v&&$("#in"))$("#in").value=v;return}
- if(d.v){S.view=d.v;paint();if(d.v=="Admin")loadUsers();return}
- if(t.id=="refresh-users"){loadUsers();return}
- if(d.promote){try{await api("/admin/users/"+d.promote+"/make-admin","POST");await loadUsers()}catch(err){S.usersErr=err.message;keep()}return}
- if(d.suspend){try{await api("/admin/users/"+d.suspend+"/suspend","POST");await loadUsers()}catch(err){S.usersErr=err.message;keep()}return}
- if(d.go){S.view=d.go;paint()}
- if(d.style){S.style=d.style;S.view="AI Create";paint()}
- if(d.c!==undefined){S.sel=+d.c;keep();return}
- if(d.dup!==undefined){const p=S.projects[+d.dup];S.projects.push({...p,n:p.n+" copy"});keep()}
- if(d.rm!==undefined){S.projects.splice(+d.rm,1);keep()}
-
- if(t.id=="gen"){S.scenes=scenesFor(($("#in").value||"Your topic").slice(0,50),S.dur);build();S.clips.length&&runJob($("#job"),STEPS,()=>{
-  $("#res").innerHTML=`<div class="card" style="margin-top:12px"><h2>Your video is ready to review</h2><p class="mu">${fmt(total())} · ${S.lang} · ${S.style} · ${S.ratio}. Edit any scene below or open the editor.</p>
-  ${S.scenes.map((s,i)=>`<div class="row" style="margin-bottom:8px"><b style="width:130px">${s.t}</b><input data-sc="${i}" value="${s.n.replace(/"/g,"&quot;")}" style="flex:1;min-width:180px"><span class="chip">${s.v}</span><span class="chip">${s.voice}</span></div>`).join("")}
-  <div class="card" style="background:var(--pn2)"><b>YouTube pack</b><p class="mu" style="margin:4px 0">Title, description, keywords, chapters and thumbnail generated.</p></div>
-  <button class="p" data-go="Editor">Open in editor</button></div>`})}
- if(t.id=="mk"){const n=+$("#cnt").value,el=$("#job");runJob(el,["Transcribing","Finding key moments","Writing hooks","Reframing to 9:16","Adding captions"],()=>{
-  S.shorts=Array.from({length:n},(_,i)=>({t:"Short "+(i+1)+": key moment",d:[45,60,50,90,40][i%5],at:"00:"+String(4+i*5).padStart(2,"0")+":10",h:"Hook: a surprising opening line"}));keep()})}
- if(d.a=="split"){const c=S.clips.find(c=>c.id==S.sel);if(c&&c.d>1){const h=Math.floor(c.d/2);S.clips.push({...c,id:Date.now(),s:c.s+h,d:c.d-h,label:c.label+" (2)"});c.d=h;keep()}}
- if(d.a=="del"){S.clips=S.clips.filter(c=>c.id!=S.sel);S.sel=null;keep()}
- if(d.a=="rev"){const c=S.clips.find(c=>c.id==S.sel);if(c){c.label=c.label+" ⟲";keep()}}
- if(d.a=="export"){alert(`Export summary\nResolution: 1080p\nFPS: 30\nAspect ratio: ${S.ratio}\nDuration: ${fmt(S.total)}\nEstimated size: ${Math.round(S.total*1.1)} MB`)}
- if(d.a=="play"){const h=$("#head");let p=0;const iv=setInterval(()=>{p+=1;h.style.left=p+"%";const at=p/100*S.total,c=S.clips.find(c=>c.track=="Subtitle"&&at>=c.s&&at<c.s+c.d);$("#cap").textContent=c?c.label:"";if(p>=100)clearInterval(iv)},60)}
- if(t.id=="run"){const v=$("#cmd").value;if(v){S.log.unshift("You: "+v,assist(v));keep()}}
+  S.busy=false; paint(); return}
+ if(t.id=="logout"){S={...S,authed:false,token:"",me:null,scenes:null,videoUrl:""}; paint(); return}
+ if(!S.authed) return;
+ if(d.v){S.view=d.v; S.err=""; keep(); if(d.v=="Admin") loadUsers(); return}
+ if(d.k){const k=d.k,x=d.x; if(k=="dur")S.dur=+x; else S[k]=x; keep(); return}
+ if(t.id=="genscript"){
+  S.topic=$("#topic").value; S.lang=$("#lang").value;
+  S.scriptBusy=true; S.scriptErr=""; S.scenes=null; S.videoUrl=""; keep();
+  try{ const r=await api("/ai/script","POST",{topic:S.topic,duration_seconds:S.dur,language:S.lang}); S.scenes=r.scenes; }
+  catch(err){S.scriptErr=err.message}
+  S.scriptBusy=false; keep(); return}
+ if(t.id=="genvideo"){
+  S.videoBusy=true; S.videoErr=""; S.videoUrl=""; keep();
+  try{
+   const blob=await api("/ai/video","POST",{scenes:S.scenes,language:S.lang,gender:S.gender},true);
+   S.videoUrl=URL.createObjectURL(blob);
+  }catch(err){S.videoErr=err.message}
+  S.videoBusy=false; keep(); return}
+ if(t.id=="upgrade"){
+  S.billingBusy=true; S.billingErr=""; keep();
+  try{
+   const cfg=await api("/payments/config","GET");
+   Paddle.Environment.set(cfg.environment);
+   Paddle.Initialize({token:cfg.client_token, eventCallback:async function(ev){
+    if(ev.name=="checkout.completed"){ await loadMe(); S.view="Billing"; keep(); }
+   }});
+   Paddle.Checkout.open({items:[{priceId:cfg.price_id,quantity:1}],customer:{email:cfg.email},customData:{user_id:String(cfg.user_id)}});
+  }catch(err){S.billingErr=err.message}
+  S.billingBusy=false; keep(); return}
+ if(t.id=="refresh-users"){loadUsers(); return}
+ if(d.promote){try{await api("/admin/users/"+d.promote+"/make-admin","POST"); await loadUsers()}catch(err){S.usersErr=err.message; keep()} return}
+ if(d.suspend){try{await api("/admin/users/"+d.suspend+"/suspend","POST"); await loadUsers()}catch(err){S.usersErr=err.message; keep()} return}
 });
-document.addEventListener("input",e=>{if(!S.authed)return;const t=e.target,d=t.dataset;
- if(d.p){const c=S.clips.find(c=>c.id==S.sel);if(c){c[d.p]=["s","d","op","sp"].includes(d.p)?+t.value:t.value;if(t.type=="range"){t.previousElementSibling.textContent=(d.p=="op"?"Opacity "+c.op+"%":"Speed "+c.sp+"×")}}}
- if(d.b){S.brand[d.b]=t.value;if(t.type!="color")return;const th=$(".thumb");th&&(th.style.background=`linear-gradient(150deg,${S.brand.c1},${S.brand.c2})`)}
- if(d.sc){S.scenes[+d.sc].n=t.value;build()}
+document.addEventListener("keydown", e=>{
+ if(e.key=="Enter" && ["gn","ge","gp"].includes(e.target.id)) $("#go").click();
+ if((e.key=="Enter"||e.key==" ") && e.target.classList.contains("chip") && e.target.dataset.k){e.preventDefault(); e.target.click()}
 });
-document.addEventListener("change",e=>{if(!S.authed)return;if(e.target.id=="lang")S.lang=e.target.value;if(e.target.dataset.p&&S.view=="Editor")keep()});
-document.addEventListener("keydown",e=>{if(e.key=="Enter"&&["gn","ge","gp"].includes(e.target.id))$("#go").click();
- if((e.key=="Enter"||e.key==" ")&&e.target.classList.contains("chip")&&e.target.dataset.k){e.preventDefault();e.target.click()}
- if(e.key=="Enter"&&e.target.id=="cmd")$("#run").click()});
 paint();
 </script></body></html>
